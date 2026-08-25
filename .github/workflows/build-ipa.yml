@@ -65,33 +65,27 @@ jobs:
           zip -qr Dr-Smart.ipa Payload
           ls -la Dr-Smart.ipa
 
-      - name: Upload IPA Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Dr-Smart-IPA
-          path: Dr-Smart.ipa
-          retention-days: 30
-
       - name: Create GitHub Release with IPA
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         with:
-          tag_name: v2.4.0-${{ github.run_number }}
+          tag_name: v2.4.0-b${{ github.run_number }}
           name: Dr. Smart iOS IPA v2.4.0 (Build ${{ github.run_number }})
           body: |
-            ## 📱 Dr. Smart iOS IPA Release (Build ${{ github.run_number }})
+            ## 📱 Dr. Smart iOS IPA Package (Build ${{ github.run_number }})
             
-            ### ✨ Included Features:
-            - **Live 360° Multi-Angle Skin & Wound Vision**: FaceID-level guided 4-step spatial dermatology scanner.
-            - **Apple Health Medication Tracker**: Time-locked scheduled doses and smart Badini clinical guidance.
-            - **Apple HIG Design**: iOS fluid animations, glassmorphic sheets, and custom themes (Sakina, Noor, Dark).
+            ### ✨ تایبەتمەندیێن نوی یێن ئەپلیکەیشنێ:
+            - **دیزاینا مۆبایل یا تایبەت بۆ ئایفۆنێ (TafsirKurd Style)**
+            - **گونجاندنا دروستا Safe Area یا ئایفۆنێ ل سەر و بنێ شاشێ**
+            - **قوفڵکرنا سنورێ شاشێ و نەهێلانا لەرزین و دەرکەفتنا شاشێ**
             
-            ### 📥 Sideload Instructions:
-            Install `Dr-Smart.ipa` using:
+            ### 📥 ڕێکێن ئینستۆڵکرنێ ل سەر ئایفۆنێ:
+            فایلا خوارێ `Dr-Smart.ipa` دابەزینە و ب ڕێکا ئێک ژ ڤان بەرنامان ئینستۆڵ بکە:
             - **TrollStore** (iOS 14.0 - 17.0)
             - **AltStore / SideStore**
-            - **Sideloadly / Scarlet / Esign**
+            - **Sideloadly / Scarlet / Esign / GBox**
           files: |
             Dr-Smart.ipa
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
