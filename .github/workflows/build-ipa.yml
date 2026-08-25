@@ -1,0 +1,97 @@
+name: Build iOS IPA Package
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-ipa:
+    name: Build iOS IPA Package
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Node Dependencies
+        run: |
+          npm install --legacy-peer-deps
+
+      - name: Build Vite Web Project
+        run: |
+          npm run build
+
+      - name: Add & Sync Capacitor iOS
+        run: |
+          npx cap add ios || true
+          npx cap sync ios
+
+      - name: Configure iOS Permissions
+        run: |
+          PLIST="ios/App/App/Info.plist"
+          if [ -f "$PLIST" ]; then
+            /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string 'Dr. Smart uses camera for real-time multi-angle skin vision analysis and medication scanning.'" "$PLIST" || true
+            /usr/libexec/PlistBuddy -c "Add :NSPhotoLibraryUsageDescription string 'Dr. Smart requires photo library access to scan lab reports and skin images.'" "$PLIST" || true
+            /usr/libexec/PlistBuddy -c "Add :NSLocationWhenInUseUsageDescription string 'Dr. Smart uses location to locate nearby clinics and pharmacies in emergency.'" "$PLIST" || true
+          fi
+
+      - name: Build Xcode Archive (iOS)
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath ios/App/build/App.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            clean archive
+
+      - name: Package IPA File
+        run: |
+          mkdir -p Payload
+          cp -r ios/App/build/App.xcarchive/Products/Applications/App.app Payload/
+          zip -qr Dr-Smart.ipa Payload
+          ls -la Dr-Smart.ipa
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dr-Smart-IPA
+          path: Dr-Smart.ipa
+          retention-days: 30
+
+      - name: Create GitHub Release with IPA
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
+        with:
+          tag_name: v2.4.0-${{ github.run_number }}
+          name: Dr. Smart iOS IPA v2.4.0 (Build ${{ github.run_number }})
+          body: |
+            ## 📱 Dr. Smart iOS IPA Release (Build ${{ github.run_number }})
+            
+            ### ✨ Included Features:
+            - **Live 360° Multi-Angle Skin & Wound Vision**: FaceID-level guided 4-step spatial dermatology scanner.
+            - **Apple Health Medication Tracker**: Time-locked scheduled doses and smart Badini clinical guidance.
+            - **Apple HIG Design**: iOS fluid animations, glassmorphic sheets, and custom themes (Sakina, Noor, Dark).
+            
+            ### 📥 Sideload Instructions:
+            Install `Dr-Smart.ipa` using:
+            - **TrollStore** (iOS 14.0 - 17.0)
+            - **AltStore / SideStore**
+            - **Sideloadly / Scarlet / Esign**
+          files: |
+            Dr-Smart.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>فۆڕمێ پێزانین و بودجەیا پڕۆژەی</title>
+  
+  <!-- Modern Google Font for Kurdish (Vazirmatn) -->
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome for Premium Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary: #10b981; /* Emerald Green */
+      --primary-hover: #059669;
+      --danger: #ef4444; /* Red */
+      --danger-hover: #dc2626;
+      --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --border-color: #cbd5e1;
+      --text-color: #1e293b;
+      --text-muted: #64748b;
+      --header-bg: #f8fafc;
+      --table-header: #f1f5f9;
+      --shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05);
+      --font-family: 'Vazirmatn', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-family);
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 2.5rem 1rem;
+      direction: rtl;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 950px;
+      background: var(--card-bg);
+      border-radius: 2rem;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      padding: 3rem;
+      position: relative;
+      overflow: hidden;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Decorative background shape */
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: linear-gradient(90deg, #10b981, #3b82f6, #f59e0b);
+    }
+
+    /* Print Header Styles */
+    .form-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 2px dashed var(--border-color);
+    }
+
+    .form-header h1 {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .form-header p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      font-weight: 500;
+    }
+
+    /* Upper Info Block Styles */
+    .info-section {
+      background: var(--header-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 1.5rem;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .info-group {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .info-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #334155;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      line-height: 1.4;
+    }
+
+    .info-label span.eng {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .info-label span.arb {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .info-input {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 0.6rem 1rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f172a;
+      transition: all 0.2s ease;
+    }
+
+    .info-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+
+    /* Table Styles */
+    .table-container {
+      overflow-x: auto;
+      margin-bottom: 2rem;
+      border: 1px solid var(--border-color);
+      border-radius: 1.5rem;
+      background: #ffffff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: right;
+    }
+
+    th {
+      background: var(--table-header);
+      color: #334155;
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      line-height: 1.4;
+    }
+
+    th span.sub {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .table-input {
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .table-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .number-input {
+      text-align: center;
+    }
+
+    .total-cell {
+      font-weight: 900;
+      color: #0f172a;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    .action-cell {
+      text-align: center;
+      width: 50px;
+    }
+
+    /* Action Buttons */
+    .btn-delete {
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0.4rem;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .btn-delete:hover {
+      background: rgba(239, 68, 68, 0.1);
+      transform: scale(1.1);
+    }
+
+    .table-actions {
+      display: flex;
+      justify-content: flex-start;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.25rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+      transform: translateY(-1px);
+    }
+
+    /* Grand Total Summary Box */
+    .summary-section {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 2.5rem;
+    }
+
+    .summary-card {
+      background: var(--header-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 1.25rem;
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .summary-label {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #334155;
+    }
+
+    .summary-val {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
+    /* Floating control bar */
+    .control-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border-color);
+      padding-top: 1.5rem;
+    }
+
+    /* Animations */
+    .row-added {
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Print optimizations */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .container {
+        box-shadow: none;
+        border: none;
+        max-width: 100%;
+        padding: 0;
+      }
+      .container::before {
+        display: none;
+      }
+      .table-actions, .control-bar, .action-cell, th:last-child {
+        display: none !important;
+      }
+      td:last-child {
+        display: none !important;
+      }
+      .info-input {
+        border: none;
+        border-bottom: 1px solid #000000;
+        border-radius: 0;
+        padding: 0.2rem 0;
+      }
+      .table-input {
+        border: none;
+      }
+      .summary-card {
+        border: none;
+        background: transparent;
+      }
+      tr {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Title Section -->
+    <div class="form-header">
+      <h1><i class="fa-solid fa-file-invoice-dollar text-emerald-500"></i> فۆڕمێ پێزانین و بودجەیا پڕۆژەی</h1>
+      <p>تکایە پێزانینێن سەرەکی و وردەکاریێن تێچوونان بنڤیسە (سیستەم خۆکارانە کۆی گشتی هەژمار دکەت)</p>
+    </div>
+
+    <!-- Top Info Block -->
+    <div class="info-section">
+      <!-- Project Name -->
+      <div class="info-group">
+        <div class="info-label">
+          <span>ناوی پڕۆژە کە</span>
+          <span class="arb">الاسم مشروع</span>
+          <span class="eng">Name of project</span>
+        </div>
+        <input type="text" class="info-input" placeholder="ناڤێ پڕۆژەی بنڤیسە..." value="Dr. Badini AI">
+      </div>
+
+      <!-- Contact Person -->
+      <div class="info-group">
+        <div class="info-label">
+          <span>ناوی کەسەی بەرپرس لە گروپەکە</span>
+          <span class="arb">اسم الشخص المسؤول عن المجموعة</span>
+          <span class="eng">Group's contact person name</span>
+        </div>
+        <input type="text" class="info-input" placeholder="ناڤێ کەسێ بەرپرس بنڤیسە..." value="هاژان ساڵح">
+      </div>
+
+      <!-- Duration -->
+      <div class="info-group">
+        <div class="info-label">
+          <span>ماوەی پڕۆژە</span>
+          <span class="arb">مدة المشروع</span>
+          <span class="eng">Duration</span>
+        </div>
+        <input type="text" class="info-input" placeholder="ماوێ پڕۆژەی دیار بکە..." value="٣ هەیڤ">
+      </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="table-container">
+      <table id="budget-table">
+        <thead>
+          <tr>
+            <th>
+              <span>باسکردن</span>
+              <span class="sub">الوصف / Description</span>
+            </th>
+            <th style="width: 180px; text-align: center;">
+              <span>بها بۆ هەر دانەیەک</span>
+              <span class="sub">التكلفة لكل وحدة / Cost per unit</span>
+            </th>
+            <th style="width: 120px; text-align: center;">
+              <span>بڕ / ژمارە</span>
+              <span class="sub">الكمية / Quantity</span>
+            </th>
+            <th style="width: 180px; text-align: center;">
+              <span>کۆی گشتی</span>
+              <span class="sub">التكلفة الإجمالية / Total cost</span>
+            </th>
+            <th class="action-cell"></th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr class="row-added">
+            <td>
+              <input type="text" class="table-input" placeholder="باسکردن..." value="کڕینی ئەندامێتی و بکارئینانا کلیلا API یێن Gemini AI">
+            </td>
+            <td>
+              <input type="number" class="table-input number-input cost-input" placeholder="0" value="380" min="0" oninput="calculateRow(this)">
+            </td>
+            <td>
+              <input type="number" class="table-input number-input qty-input" placeholder="0" value="1" min="0" oninput="calculateRow(this)">
+            </td>
+            <td class="total-cell">380</td>
+            <td class="action-cell">
+              <button class="btn-delete" onclick="deleteRow(this)" title="ژێبرن"><i class="fa-solid fa-trash-can"></i></button>
+            </td>
+          </tr>
+          <tr class="row-added">
+            <td>
+              <input type="text" class="table-input" placeholder="باسکردن..." value="خەرجیێن دیزاینا UI/UX و گەشەپێدانا ڕووکاری">
+            </td>
+            <td>
+              <input type="number" class="table-input number-input cost-input" placeholder="0" value="280" min="0" oninput="calculateRow(this)">
+            </td>
+            <td>
+              <input type="number" class="table-input number-input qty-input" placeholder="0" value="1" min="0" oninput="calculateRow(this)">
+            </td>
+            <td class="total-cell">280</td>
+            <td class="action-cell">
+              <button class="btn-delete" onclick="deleteRow(this)" title="ژێبرن"><i class="fa-solid fa-trash-can"></i></button>
+            </td>
+          </tr>
+          <tr class="row-added">
+            <td>
+              <input type="text" class="table-input" placeholder="باسکردن..." value="خەرجیێن مێوانداریا ئەوری و داتابەیس (Firebase/Supabase)">
+            </td>
+            <td>
+              <input type="number" class="table-input number-input cost-input" placeholder="0" value="120" min="0" oninput="calculateRow(this)">
+            </td>
+            <td>
+              <input type="number" class="table-input number-input qty-input" placeholder="0" value="1" min="0" oninput="calculateRow(this)">
+            </td>
+            <td class="total-cell">120</td>
+            <td class="action-cell">
+              <button class="btn-delete" onclick="deleteRow(this)" title="ژێبرن"><i class="fa-solid fa-trash-can"></i></button>
+            </td>
+          </tr>
+          <tr class="row-added">
+            <td>
+              <input type="text" class="table-input" placeholder="باسکردن..." value="دروستکردنا هەژمارا گەشەپێدەری (App Store / Google Play)">
+            </td>
+            <td>
+              <input type="number" class="table-input number-input cost-input" placeholder="0" value="100" min="0" oninput="calculateRow(this)">
+            </td>
+            <td>
+              <input type="number" class="table-input number-input qty-input" placeholder="0" value="1" min="0" oninput="calculateRow(this)">
+            </td>
+            <td class="total-cell">100</td>
+            <td class="action-cell">
+              <button class="btn-delete" onclick="deleteRow(this)" title="ژێبرن"><i class="fa-solid fa-trash-can"></i></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Table Actions -->
+    <div class="table-actions">
+      <button class="btn btn-secondary" onclick="addNewRow()">
+        <i class="fa-solid fa-plus"></i> زێدەکرنا دێڕا نووی
+      </button>
+    </div>
+
+    <!-- Total Cost Card Summary -->
+    <div class="summary-section">
+      <div class="summary-card">
+        <div class="summary-label">
+          <span>کۆى گشتیى تێچوونان:</span>
+          <span style="display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 500;">التكلفة الإجمالية العامة / Grand Total</span>
+        </div>
+        <div class="summary-val" id="grand-total">$ 880</div>
+      </div>
+    </div>
+
+    <!-- Control Actions (Print, Reset) -->
+    <div class="control-bar">
+      <button class="btn btn-secondary" onclick="resetForm()">
+        <i class="fa-solid fa-arrows-rotate"></i> پاقژکرنا فۆڕمێ
+      </button>
+      <button class="btn btn-primary" onclick="window.print()">
+        <i class="fa-solid fa-print"></i> چاپکردن یان پاشکەوتکردن (PDF)
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    // Calculate total cost for a specific row
+    function calculateRow(input) {
+      const row = input.closest('tr');
+      const cost = parseFloat(row.querySelector('.cost-input').value) || 0;
+      const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+      const totalCell = row.querySelector('.total-cell');
+      
+      const total = cost * qty;
+      totalCell.textContent = formatNumber(total);
+      
+      calculateGrandTotal();
+    }
+
+    // Calculate Grand Total for the entire table
+    function calculateGrandTotal() {
+      const rows = document.querySelectorAll('#table-body tr');
+      let grandTotal = 0;
+      
+      rows.forEach(row => {
+        const cost = parseFloat(row.querySelector('.cost-input').value) || 0;
+        const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+        grandTotal += (cost * qty);
+      });
+      
+      document.getElementById('grand-total').textContent = "$ " + formatNumber(grandTotal);
+    }
+
+    // Format number to have commas (e.g. 100,000)
+    function formatNumber(num) {
+      return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    }
+
+    // Add a new row to the table
+    function addNewRow() {
+      const tbody = document.getElementById('table-body');
+      const newRow = document.createElement('tr');
+      newRow.className = 'row-added';
+      
+      newRow.innerHTML = `
+        <td>
+          <input type="text" class="table-input" placeholder="باسکردن...">
+        </td>
+        <td>
+          <input type="number" class="table-input number-input cost-input" placeholder="0" min="0" oninput="calculateRow(this)">
+        </td>
+        <td>
+          <input type="number" class="table-input number-input qty-input" placeholder="0" min="0" oninput="calculateRow(this)">
+        </td>
+        <td class="total-cell">0</td>
+        <td class="action-cell">
+          <button class="btn-delete" onclick="deleteRow(this)" title="ژێبرن"><i class="fa-solid fa-trash-can"></i></button>
+        </td>
+      `;
+      
+      tbody.appendChild(newRow);
+      // Scroll to bottom of table container to see the new row
+      const tableContainer = document.querySelector('.table-container');
+      tableContainer.scrollTop = tableContainer.scrollHeight;
+    }
+
+    // Delete a specific row
+    function deleteRow(button) {
+      const row = button.closest('tr');
+      row.style.opacity = '0';
+      row.style.transform = 'translateY(-10px)';
+      row.style.transition = 'all 0.2s ease';
+      
+      setTimeout(() => {
+        row.remove();
+        calculateGrandTotal();
+      }, 200);
+    }
+
+    // Reset entire form
+    function resetForm() {
+      if (confirm('ئەرێ تو پشتڕاستی کو دخوازی هەمی خانەیان پاقژ بکەی؟')) {
+        document.querySelectorAll('.info-input').forEach(input => input.value = '');
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+        addNewRow();
+        calculateGrandTotal();
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "name": "Dr. Badini AI",
+  "description": "A medical AI assistant in Kurdish (Badini dialect) analyzing symptoms and medicines.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

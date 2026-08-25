@@ -1,0 +1,52 @@
+workflows:
+  ios-capacitor:
+    name: Dr. Badini AI — iOS Build
+    max_build_duration: 60
+    environment:
+      xcode: latest
+      node: 20
+      vars:
+        BUNDLE_ID: "com.hajan767.drbadini"
+        APP_NAME: "Dr. Badini AI"
+    scripts:
+      - name: Install dependencies
+        script: npm ci
+
+      - name: Build web app
+        script: npm run build
+
+      - name: Install Capacitor iOS
+        script: |
+          npm install @capacitor/ios
+          npx cap add ios || true
+          npx cap sync ios
+
+      - name: Set up code signing (unsigned IPA for testing)
+        script: |
+          xcodebuild -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath ios/App/App.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_ALLOWED="NO" \
+            archive
+
+      - name: Export IPA (unsigned)
+        script: |
+          mkdir -p Payload
+          cp -r ios/App/App.xcarchive/Products/Applications/App.app Payload/
+          zip -r Dr-Badini-AI.ipa Payload/
+          rm -rf Payload/
+
+    artifacts:
+      - Dr-Badini-AI.ipa
+      - ios/App/App.xcarchive
+
+    publishing:
+      email:
+        recipients:
+          - your@email.com
+        notify:
+          success: true
+          failure: true

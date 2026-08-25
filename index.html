@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="نۆژدارێ زیرەک" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="theme-color" content="#0c1c12" id="metaThemeColor" />
+  <title>نۆژدارێ زیرەک</title>
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    (function(){
+      var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && 'ontouchend' in document);
+      if (isIOS) document.documentElement.classList.add('ios');
+      var saved = localStorage.getItem('themeMode') || localStorage.getItem('theme') || 'sakina';
+      document.documentElement.setAttribute('data-theme', saved);
+      var bgMap = { dark: '#0a0a0a', sakina: '#0c1c12', noor: '#f4e8cc', light: '#fafafa' };
+      var bg = bgMap[saved] || '#0c1c12';
+      document.documentElement.style.background = bg;
+      document.documentElement.style.backgroundColor = bg;
+      var meta = document.getElementById('metaThemeColor');
+      if (meta) meta.setAttribute('content', bg);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/fonts/fonts.css">
+  <link rel="stylesheet" href="/assets/fontawesome/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    :root {
+      --font-en: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --safe-t: env(safe-area-inset-top, 0px);
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-l: env(safe-area-inset-left, 0px);
+      --safe-r: env(safe-area-inset-right, 0px);
+      --primary: #000000;
+      --accent: #10b981;
+      --accent-t: #ffffff;
+      --bg: #fafafa;
+      --bg2: #f0f0f0;
+      --bg3: #e5e5e5;
+      --surface: #ffffff;
+      --surface-h: #f5f5f5;
+      --text: #000000;
+      --text2: #555555;
+      --text3: #888888;
+      --border: #e8e8e8;
+      --border2: #dcdcdc;
+      --r-s: 8px;
+      --r-m: 12px;
+      --r-l: 16px;
+      --r-xl: 20px;
+      --r-full: 9999px;
+      --ease: cubic-bezier(0.32, 1, 0.56, 1);
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+      --sal: env(safe-area-inset-left, 0px);
+      --sar: env(safe-area-inset-right, 0px);
+    }
+
+    /* ── iOS Safe Boundary & No-Overscroll Lock ── */
+    html, body {
+      width: 100% !important;
+      height: 100% !important;
+      height: 100dvh !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      position: fixed !important;
+      inset: 0 !important;
+      -webkit-overflow-scrolling: touch !important;
+      overscroll-behavior: none !important;
+      user-select: none !important;
+      -webkit-user-select: none !important;
+      -webkit-touch-callout: none !important;
+    }
+    #root {
+      width: 100% !important;
+      height: 100% !important;
+      height: 100dvh !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      -webkit-overflow-scrolling: touch !important;
+      overscroll-behavior-y: none !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    [data-theme="dark"] {
+      --primary: #ffffff;
+      --accent: #ffffff;
+      --accent-t: #000000;
+      --bg: #0a0a0a;
+      --bg2: #161616;
+      --bg3: #050505;
+      --surface: #1a1a1a;
+      --surface-h: #222222;
+      --text: #ffffff;
+      --text2: #b0b0b0;
+      --text3: #666666;
+      --border: #2a2a2a;
+      --border2: #3a3a3a;
+    }
+
+    [data-theme="noor"] {
+      --primary: #1a5c3a;
+      --accent: #1a5c3a;
+      --accent-t: #fdf4e3;
+      --bg: #f4e8cc;
+      --bg2: #fdf4e3;
+      --bg3: #eddfc0;
+      --surface: #fdf4e3;
+      --surface-h: #f0e2c4;
+      --text: #1a0e04;
+      --text2: #5c3d1a;
+      --text3: #9b7650;
+      --border: #d9c9a8;
+      --border2: #c9b490;
+    }
+
+    [data-theme="sakina"] {
+      --primary: #c9a84c;
+      --accent: #c9a84c;
+      --accent-t: #0c1c12;
+      --bg: #0c1c12;
+      --bg2: #112318;
+      --bg3: #081410;
+      --surface: #162d1f;
+      --surface-h: #1c3827;
+      --text: #f0e6c8;
+      --text2: #a89268;
+      --text3: #6b5c3e;
+      --border: #1e3828;
+      --border2: #2c5038;
+    }
+
+    [data-theme="light"] {
+      --primary: #000000;
+      --accent: #000000;
+      --accent-t: #ffffff;
+      --bg: #fafafa;
+      --bg2: #f0f0f0;
+      --bg3: #e5e5e5;
+      --surface: #ffffff;
+      --surface-h: #f5f5f5;
+      --text: #000000;
+      --text2: #555555;
+      --text3: #888888;
+      --border: #e8e8e8;
+      --border2: #dcdcdc;
+    }
+
+    /* ── TafsirKurd Theme Card Styles ── */
+    .theme-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 10px !important;
+      margin-bottom: 2px !important;
+    }
+    .theme-card {
+      border: 2px solid var(--border) !important;
+      border-radius: 20px !important;
+      padding: 14px 14px 12px !important;
+      cursor: pointer !important;
+      background: var(--surface) !important;
+      transition: border-color .18s, box-shadow .18s, background-color .18s !important;
+      position: relative !important;
+      overflow: hidden !important;
+    }
+    .theme-card.on {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 1px var(--accent) !important;
+    }
+    .theme-card:active {
+      transform: scale(.97) !important;
+    }
+    .theme-card-preview {
+      display: flex !important;
+      gap: 8px !important;
+      margin-bottom: 9px !important;
+      align-items: center !important;
+    }
+    .theme-swatch-main {
+      width: 38px !important;
+      height: 26px !important;
+      border-radius: 7px !important;
+      position: relative !important;
+      flex-shrink: 0 !important;
+    }
+    .theme-swatch-dot {
+      width: 11px !important;
+      height: 11px !important;
+      border-radius: 50% !important;
+      position: absolute !important;
+      bottom: 4px !important;
+      right: 4px !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,.3) !important;
+    }
+    .theme-swatch-lines {
+      flex: 1 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 3px !important;
+      justify-content: center !important;
+      padding: 0 2px !important;
+    }
+    .theme-swatch-line {
+      height: 3px !important;
+      border-radius: 2px !important;
+    }
+    .theme-card-name {
+      font-size: .95rem !important;
+      font-weight: 800 !important;
+      color: var(--text) !important;
+    }
+    .theme-card-sub {
+      font-size: .68rem !important;
+      color: var(--text3) !important;
+      font-weight: 600 !important;
+      margin-top: 1px !important;
+    }
+    .theme-card-check {
+      position: absolute !important;
+      top: 10px !important;
+      inset-inline-start: 10px !important;
+      left: 10px !important;
+      width: 20px !important;
+      height: 20px !important;
+      border-radius: 50% !important;
+      background: var(--accent) !important;
+      color: var(--accent-t) !important;
+      display: none !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: .65rem !important;
+    }
+    .theme-card.on .theme-card-check {
+      display: flex !important;
+    }
+
+    /* ── TafsirKurd Individual Setting Rows (s-row) ── */
+    .s-row {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 14px 16px !important;
+      min-height: 54px !important;
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 14px !important;
+      margin-bottom: 6px !important;
+      -webkit-tap-highlight-color: transparent !important;
+      transition: background .15s !important;
+      cursor: pointer !important;
+    }
+    .s-row:last-child {
+      margin-bottom: 0 !important;
+    }
+    .s-row:active {
+      background: var(--surface-h) !important;
+    }
+    .about-nav-left {
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+    }
+    .about-nav-icon {
+      width: 42px !important;
+      height: 42px !important;
+      border-radius: 10px !important;
+      background: var(--bg2) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: .95rem !important;
+      color: var(--text2) !important;
+      flex-shrink: 0 !important;
+      overflow: hidden !important;
+    }
+    .about-nav-icon--img {
+      border-radius: 50% !important;
+    }
+    .about-nav-icon--img.about-nav-icon--logo {
+      background: #0c1c12 !important;
+      padding: 0 !important;
+      border-radius: 50% !important;
+      overflow: hidden !important;
+      box-shadow: 0 0 0 1.5px var(--border) !important;
+    }
+    .about-nav-icon--img.about-nav-icon--person {
+      background: var(--bg3) !important;
+    }
+    .about-nav-icon--logo img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      display: block !important;
+      border-radius: 50% !important;
+    }
+    .about-nav-icon--person img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      border-radius: 50% !important;
+      display: block !important;
+    }
+    .about-nav-label {
+      font-size: .93rem !important;
+      font-weight: 700 !important;
+      color: var(--text) !important;
+      direction: rtl !important;
+    }
+    .about-nav-sub {
+      font-size: .75rem !important;
+      color: var(--text3) !important;
+      direction: rtl !important;
+      margin-top: 1px !important;
+    }
+    .about-nav-chevron {
+      color: var(--text3) !important;
+      font-size: .8rem !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+
+
+    *, *::before, *::after {
+      -webkit-tap-highlight-color: transparent !important;
+      -webkit-touch-callout: none !important;
+      box-sizing: border-box;
+    }
+
+    /* ── Typography: Kurdish (IBM Plex Sans Arabic) & Arabic Quran (KFGQPC Hafs) ── */
+    body, button, input, select, textarea, p, h1, h2, h3, h4, h5, h6, span, div, a, label, .about-nav-label, .about-nav-sub, .stats-num, .stats-lbl, .theme-card-name, .theme-card-sub {
+      font-family: 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    .cfo-ayah-ar, .cab-ayah-ar, .quran-font, .cfg-sheet-quote-ar {
+      font-family: 'KFGQPC Hafs', 'Amiri Quran', 'Scheherazade New', serif !important;
+      letter-spacing: 0px !important;
+      line-height: 1.8 !important;
+    }
+
+    i[class*="fa-"], .fa, .fas, .far, .fab, .fal, .fad {
+      font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+      font-style: normal;
+      font-variant: normal;
+      text-rendering: auto;
+      line-height: 1;
+    }
+    i.fab, .fab {
+      font-family: "Font Awesome 6 Brands" !important;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      min-height: 100dvh;
+      font-weight: 500;
+      background-color: var(--bg) !important;
+      color: var(--text) !important;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    #root {
+      width: 100%;
+      min-height: 100%;
+      min-height: 100dvh;
+      background-color: var(--bg);
+      color: var(--text);
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ── Lock background scroll when any modal/sheet is open ── */
+    body.modal-open {
+      overflow: hidden !important;
+      touch-action: none !important;
+    }
+    body.modal-open #root {
+      overflow: hidden !important;
+      pointer-events: none !important;
+      touch-action: none !important;
+    }
+    /* But keep pointer events on the overlay and sheet itself */
+    body.modal-open .cfg-sheet-overlay,
+    body.modal-open .cfg-sheet,
+    body.modal-open [style*="z-index: 999"],
+    body.modal-open [style*="zIndex: 99"] {
+      pointer-events: auto !important;
+    }
+
+    /* ── TafsirKurd Stats Card Styles ── */
+    .stats-card {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: stretch !important;
+      justify-content: space-between !important;
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 20px !important;
+      padding: 14px 4px !important;
+      margin-bottom: 20px !important;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06) !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    .stats-col {
+      flex: 1 1 0% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 3px !important;
+      padding: 0 4px !important;
+      position: relative !important;
+      min-width: 0 !important;
+      text-align: center !important;
+    }
+
+    .stats-icon {
+      font-size: 1.15rem !important;
+      line-height: 1 !important;
+      margin-bottom: 2px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    .stats-num {
+      font-size: clamp(0.85rem, 3.2vw, 1.1rem) !important;
+      font-weight: 800 !important;
+      color: var(--text) !important;
+      line-height: 1.1 !important;
+    }
+
+    .stats-lbl {
+      font-size: clamp(0.6rem, 2.2vw, 0.72rem) !important;
+      font-weight: 700 !important;
+      color: var(--text3) !important;
+      margin-top: 1px !important;
+      text-align: center !important;
+      white-space: nowrap !important;
+      line-height: 1.2 !important;
+    }
+
+    /* ── Full Device Responsiveness (Small phones, Foldables, Tablets, Pro Max) ── */
+    @media (max-width: 360px) {
+      .stats-card { padding: 10px 2px !important; gap: 0 !important; }
+      .stats-num { font-size: 0.88rem !important; }
+      .stats-lbl { font-size: 0.6rem !important; }
+      .stats-icon { font-size: 0.95rem !important; }
+      .theme-grid { grid-template-columns: 1fr 1fr !important; gap: 6px !important; }
+      .theme-card { padding: 8px !important; }
+      .about-nav-label { font-size: 0.85rem !important; }
+      .about-nav-sub { font-size: 0.68rem !important; }
+    }
+
+    @media (min-width: 640px) {
+      .settings-page-container, .main-content-container, .app-container {
+        max-width: 480px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+      }
+      .cfg-sheet {
+        max-width: 100% !important;
+        width: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+        margin: 0 !important;
+        border-radius: 20px 20px 0 0 !important;
+      }
+    }
+
+    .stats-col + .stats-col::before {
+      content: '' !important;
+      position: absolute !important;
+      right: 0 !important;
+      top: 15% !important;
+      bottom: 15% !important;
+      width: 1px !important;
+      background: var(--border) !important;
+    }
+
+    /* ── Hide bottom navigation dock when any modal or sheet is open ── */
+    body:has(.cfg-sheet-overlay) .ios-bottom-nav,
+    body:has([data-sheet-open="true"]) .ios-bottom-nav,
+    .modal-open .ios-bottom-nav {
+      display: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    /* ── TafsirKurd Exact Sheet & Modal Styles (Mobile / iOS) ── */
+    .cfg-sheet-overlay {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 99998 !important;
+      background: rgba(0, 0, 0, 0.6) !important;
+      display: flex !important;
+      align-items: flex-end !important;
+      justify-content: center !important;
+      overscroll-behavior: none !important;
+      touch-action: none !important;
+      animation: fadeIn 0.22s ease-out forwards;
+    }
+    .cfg-sheet {
+      position: fixed !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      top: max(56px, calc(env(safe-area-inset-top, 0px) + 12px)) !important;
+      height: auto !important;
+      max-height: none !important;
+      min-height: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      background: var(--bg) !important;
+      color: var(--text) !important;
+      border: 1px solid var(--border) !important;
+      border-bottom: none !important;
+      border-radius: 20px 20px 0 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.45) !important;
+      z-index: 99999 !important;
+      overflow: hidden !important;
+      margin: 0 !important;
+      padding-bottom: max(14px, env(safe-area-inset-bottom, 14px)) !important;
+      overscroll-behavior: contain !important;
+      -webkit-font-smoothing: antialiased !important;
+      -moz-osx-font-smoothing: grayscale !important;
+      text-rendering: optimizeLegibility !important;
+      animation: slideUp 0.3s cubic-bezier(0.32, 1, 0.56, 1) forwards;
+    }
+    .cfg-sheet-pull {
+      width: 36px !important;
+      height: 4px !important;
+      border-radius: 2px !important;
+      background: var(--border2, rgba(128, 128, 128, 0.35)) !important;
+      margin: 10px auto 6px !important;
+      flex-shrink: 0 !important;
+      cursor: grab;
+    }
+    .cfg-sheet-pull:active {
+      cursor: grabbing;
+    }
+    .cfg-sheet-hdr {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 8px 18px 12px !important;
+      border-bottom: 1px solid var(--border) !important;
+      flex-shrink: 0 !important;
+    }
+    .cfg-sheet-title {
+      font-size: 1.05rem !important;
+      font-weight: 800 !important;
+      color: var(--text) !important;
+      direction: rtl !important;
+    }
+    .cfg-sheet-close {
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: 50% !important;
+      background: var(--bg2) !important;
+      border: none !important;
+      color: var(--text2) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 0.85rem !important;
+      cursor: pointer !important;
+      transition: transform 0.15s, background 0.15s !important;
+    }
+    .cfg-sheet-close:active {
+      background: var(--bg3) !important;
+      transform: scale(0.9) !important;
+    }
+    .cfg-sheet-body {
+      padding: 14px 18px 20px !important;
+      overflow-y: auto !important;
+      flex: 1 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 16px !important;
+      -webkit-overflow-scrolling: touch !important;
+      overscroll-behavior: contain !important;
+    }
+
+    .cfg-sheet-hero {
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      padding: 6px 0 10px;
+    }
+    .cfg-sheet-avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      border: 2px solid var(--border2);
+      background: var(--bg2);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 8px; overflow: hidden;
+    }
+    .cfg-sheet-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .cfg-sheet-name { font-size: 1rem; font-weight: 800; color: var(--text); }
+    .cfg-sheet-role { font-size: 0.75rem; font-weight: 600; color: var(--accent); margin-top: 2px; }
+
+    .cfo-section, .cab-section { display: flex; flex-direction: column; gap: 10px; }
+    .cab-sec-label { font-size: 0.72rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.8px; }
+    .cab-sec-title { font-size: 1.1rem; font-weight: 800; color: var(--text); }
+    .cfo-para, .cab-decl-para { font-size: 0.88rem; line-height: 1.75; color: var(--text2); }
+
+    .cfo-ayah, .cab-ayah-wrap {
+      background: var(--bg2); border-right: 4px solid var(--accent);
+      border-radius: 14px 6px 6px 14px; padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .cfo-ayah-ar, .cab-ayah-ar { font-size: 1.05rem; font-weight: 700; color: var(--text); line-height: 1.6; }
+    .cfo-ayah-ku, .cab-ayah-ku { font-size: 0.85rem; font-weight: 600; color: var(--text2); font-style: italic; }
+    .cfo-ayah-ref, .cab-ayah-ref { font-size: 0.75rem; font-weight: 700; color: var(--accent); align-self: flex-start; }
+
+    .cfo-values { display: flex; flex-direction: column; gap: 10px; }
+    .cfo-val-item {
+      background: var(--bg2); border-radius: 14px; padding: 12px 14px;
+      border: 1px solid var(--border);
+    }
+    .cfo-val-title { font-size: 0.9rem; font-weight: 800; color: var(--text); margin-bottom: 2px; }
+    .cfo-val-desc { font-size: 0.82rem; color: var(--text2); line-height: 1.6; }
+
+    .cfo-dua {
+      background: var(--bg2); border-radius: 16px; padding: 16px;
+      border: 1px dashed var(--accent);
+      display: flex; flex-direction: column; gap: 6px; text-align: center;
+    }
+    .cfo-dua-label { font-size: 0.72rem; font-weight: 700; color: var(--accent); }
+    .cfo-dua-title { font-size: 1rem; font-weight: 800; color: var(--text); }
+    .cfo-dua-text { font-size: 0.86rem; color: var(--text2); line-height: 1.7; }
+
+    .cab-feat {
+      display: flex; gap: 12px; align-items: flex-start;
+      background: var(--bg2); border-radius: 14px; padding: 12px 14px;
+      border: 1px solid var(--border);
+    }
+    .cab-feat-num {
+      font-size: 1.15rem; font-weight: 900; color: var(--accent);
+      line-height: 1; min-width: 24px;
+    }
+    .cab-feat-body { display: flex; flex-direction: column; gap: 3px; }
+    .cab-feat-title { font-size: 0.92rem; font-weight: 800; color: var(--text); }
+    .cab-feat-desc { font-size: 0.8rem; color: var(--text2); line-height: 1.55; }
+
+    .cab-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .cab-stat {
+      background: var(--bg2); border-radius: 14px; padding: 14px 10px;
+      text-align: center; display: flex; flex-direction: column; gap: 2px;
+      border: 1px solid var(--border);
+    }
+    .cab-stat-num { font-size: 1.4rem; font-weight: 900; color: var(--accent); }
+    .cab-stat-label { font-size: 0.75rem; font-weight: 700; color: var(--text3); }
+
+    .cab-decl {
+      background: var(--bg2); border-radius: 14px; padding: 14px;
+      border: 1px solid var(--border);
+    }
+    .cab-decl-title { font-size: 0.95rem; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+
+    .cfo-timeline { display: flex; flex-direction: column; gap: 14px; position: relative; padding-inline-start: 14px; border-inline-start: 2px solid var(--border2); }
+    .cfo-tl-item { position: relative; display: flex; flex-direction: column; gap: 2px; }
+    .cfo-tl-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent); position: absolute;
+      right: -19.5px; top: 4px; border: 2px solid var(--surface);
+    }
+    .cfo-tl-title { font-size: 0.88rem; font-weight: 800; color: var(--text); }
+    .cfo-tl-desc { font-size: 0.8rem; color: var(--text2); line-height: 1.55; }
+
+    .cab-book-card {
+      background: var(--bg2); border-radius: 16px; padding: 16px;
+      border: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px;
+    }
+    .cab-book-card-badge {
+      align-self: flex-start; padding: 3px 10px; border-radius: 9999px;
+      font-size: 0.68rem; font-weight: 800; background: var(--accent); color: var(--accent-t);
+    }
+    .cab-book-card-title { font-size: 1rem; font-weight: 800; color: var(--text); }
+    .cab-book-card-author { font-size: 0.8rem; font-weight: 700; color: var(--accent); }
+    .cab-book-card-desc { font-size: 0.82rem; color: var(--text2); line-height: 1.6; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    /* Allow selection only in real text inputs */
+    input, textarea {
+      user-select: text !important;
+      -webkit-user-select: text !important;
+    }
+
+    /* Native iOS smooth tap feedback */
+    button, [role="button"], a {
+      transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.12s ease;
+      cursor: pointer;
+    }
+    button:active, [role="button"]:active {
+      transform: scale(0.96);
+      opacity: 0.85;
+    }
+
+    /* Hide scrollbars completely for native app feel */
+    ::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    * {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+
+    /* ── iOS Native Safe Area Utilities ── */
+    .ios-bottom-nav {
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+    }
+
+    .ios-pt-safe {
+      padding-top: calc(env(safe-area-inset-top, 0px) + 20px) !important;
+    }
+
+    .ios-pb-content {
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 95px) !important;
+    }
+
+    .ios-top-button {
+      top: calc(env(safe-area-inset-top, 0px) + 16px) !important;
+    }
+
+    .font-en, [lang="en"], .ref-link, .ref-link span, .font-latin {
+      font-family: var(--font-en) !important;
+    }
+
+    html, body {
+      background: var(--bg) !important;
+      background-color: var(--bg) !important;
+      color: var(--text);
+      min-height: 100% !important;
+      min-height: 100dvh !important;
+      overscroll-behavior-y: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #root {
+      background: var(--bg);
+      min-height: 100% !important;
+      min-height: 100dvh !important;
+    }
+
+    @keyframes scale-in {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>
