@@ -17,6 +17,7 @@ import SkinVisionModal from './components/SkinVisionModal';
 import AuthScreen from './components/AuthScreen';
 import IOSNotificationToast, { ToastMessage } from './components/IOSNotificationToast';
 import { IOSNotificationBanner } from './components/IOSNotificationBanner';
+import IOSPermissionPrompt from './components/IOSPermissionPrompt';
 import { analyzeMedicalQuery } from './services/geminiService';
 import { getCurrentUser, signOut, UserProfile } from './services/authService';
 import { MedicalData, AppState, HistoryItem } from './types';
@@ -716,6 +717,9 @@ function App() {
           setActiveTab('meds');
         }}
       />
+
+      {/* ── EXPLICIT IOS PERMISSION PROMPT DIALOG ── */}
+      <IOSPermissionPrompt showToast={showToast} />
     </div>
   );
 }
