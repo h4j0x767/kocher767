@@ -68,20 +68,18 @@ jobs:
       - name: Publish GitHub Release with IPA
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG_NAME="v2.4.0-b${{ github.run_number }}"
-          echo "Creating Release $TAG_NAME..."
-          gh release create "$TAG_NAME" Dr-Smart.ipa \
-            --title "Dr. Smart iOS IPA v2.4.0 (Build ${{ github.run_number }})" \
-            --notes "## 📱 Dr. Smart iOS IPA Package (Build ${{ github.run_number }})
-
-### ✨ تایبەتمەندیێن نوی یێن ئەپلیکەیشنێ:
-- نۆتیفیکەیشنا زەنگا دەرمانان ب شێوازێ فەرمی یێ ئایفۆنێ
-- دەنگێ زەنگێ و لەرزین (Chime Sound & Haptics)
-- دیزاینا مۆبایل یا تایبەت بۆ ئایفۆنێ (TafsirKurd Style)
-
-### 📥 دابەزاندن:
-فایلا خوارێ **Dr-Smart.ipa** دابەزینە بۆ ناڤ ئایفۆنێ." || true
-
-
+          echo "Building release notes..."
+          cat << 'EOF' > release_notes.md
+          ## 📱 Dr. Smart iOS IPA Package
+          
+          ### ✨ تایبەتمەندیێن نوی یێن ئەپلیکەیشنێ:
+          - **نۆتیفیکەیشنا زەنگا دەرمانان ب شێوازێ فەرمی یێ ئایفۆنێ**
+          - **دەنگێ زەنگێ و لەرزین (Chime Sound & Haptics)**
+          - **دیزاینا مۆبایل یا تایبەت بۆ ئایفۆنێ (TafsirKurd Style)**
+          
+          ### 📥 دابەزاندن:
+          فایلا خوارێ **Dr-Smart.ipa** دابەزینە بۆ ناڤ ئایفۆنێ ب ڕێکا TrollStore یان Scarlet یان AltStore.
+          EOF
+          gh release create "$TAG_NAME" Dr-Smart.ipa --title "Dr. Smart iOS IPA v2.4.0 (Build ${{ github.run_number }})" --notes-file release_notes.md || true
