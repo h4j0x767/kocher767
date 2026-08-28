@@ -65,27 +65,23 @@ jobs:
           zip -qr Dr-Smart.ipa Payload
           ls -la Dr-Smart.ipa
 
-      - name: Create GitHub Release with IPA
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
-        with:
-          tag_name: v2.4.0-b${{ github.run_number }}
-          name: Dr. Smart iOS IPA v2.4.0 (Build ${{ github.run_number }})
-          body: |
-            ## 📱 Dr. Smart iOS IPA Package (Build ${{ github.run_number }})
-            
-            ### ✨ تایبەتمەندیێن نوی یێن ئەپلیکەیشنێ:
-            - **دیزاینا مۆبایل یا تایبەت بۆ ئایفۆنێ (TafsirKurd Style)**
-            - **گونجاندنا دروستا Safe Area یا ئایفۆنێ ل سەر و بنێ شاشێ**
-            - **قوفڵکرنا سنورێ شاشێ و نەهێلانا لەرزین و دەرکەفتنا شاشێ**
-            
-            ### 📥 ڕێکێن ئینستۆڵکرنێ ل سەر ئایفۆنێ:
-            فایلا خوارێ `Dr-Smart.ipa` دابەزینە و ب ڕێکا ئێک ژ ڤان بەرنامان ئینستۆڵ بکە:
-            - **TrollStore** (iOS 14.0 - 17.0)
-            - **AltStore / SideStore**
-            - **Sideloadly / Scarlet / Esign / GBox**
-          files: |
-            Dr-Smart.ipa
+      - name: Publish GitHub Release with IPA
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="v2.4.0-b${{ github.run_number }}"
+          echo "Creating Release $TAG_NAME..."
+          gh release create "$TAG_NAME" Dr-Smart.ipa \
+            --title "Dr. Smart iOS IPA v2.4.0 (Build ${{ github.run_number }})" \
+            --notes "## 📱 Dr. Smart iOS IPA Package (Build ${{ github.run_number }})
+
+### ✨ تایبەتمەندیێن نوی یێن ئەپلیکەیشنێ:
+- نۆتیفیکەیشنا زەنگا دەرمانان ب شێوازێ فەرمی یێ ئایفۆنێ
+- دەنگێ زەنگێ و لەرزین (Chime Sound & Haptics)
+- دیزاینا مۆبایل یا تایبەت بۆ ئایفۆنێ (TafsirKurd Style)
+
+### 📥 دابەزاندن:
+فایلا خوارێ **Dr-Smart.ipa** دابەزینە بۆ ناڤ ئایفۆنێ." || true
+
 
