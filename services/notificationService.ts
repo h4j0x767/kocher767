@@ -1,9 +1,12 @@
 /**
  * notificationService.ts
  * Unified notification & reminder layer for Dr. Smart (نۆژدارێ زیرەک).
- * Handles Web Notifications, synthesized iOS Chime Audio, Haptics,
+ * Handles Native iOS UNUserNotificationCenter (outside the app / lock screen),
+ * Web Notifications API, Synthesized iOS Chime Audio, Haptics,
  * and In-App native iOS Dynamic Notification Banners.
  */
+import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -99,90 +102,114 @@ export function triggerNotificationHaptic(): void {
   } catch {}
 }
 
-// ── Web / System Notifications ───────────────────────────────────────────────
-
-async function webRequest(): Promise<NotificationPermission> {
-  if (typeof window === 'undefined' || !('Notification' in window)) return 'unknown';
-  if (Notification.permission === 'granted') return 'granted';
-  try {
-    const result = await Notification.requestPermission();
-    return result as NotificationPermission;
-  } catch {
-    return 'unknown';
-  }
-}
-
-function webSchedule(n: AppNotification): void {
-  if (typeof window === 'undefined' || !('Notification' in window)) return;
-  if (Notification.permission !== 'granted') return;
-
-  const fire = () => {
-    try {
-      new Notification(n.title, {
-        body: n.body,
-        icon: n.icon ?? '/logo.png',
-        badge: '/logo.png',
-        data: n.data,
-        tag: String(n.id ?? nextId()),
-      });
-      playNotificationChime();
-      triggerNotificationHaptic();
-    } catch (e) {
-      console.warn('[notificationService] Notification trigger error', e);
-    }
-  };
-
-  if (n.scheduledAt) {
-    const delay = n.scheduledAt.getTime() - Date.now();
-    if (delay > 0) setTimeout(fire, delay);
-    else fire();
-  } else {
-    fire();
-  }
-}
-
-// ── Public API ───────────────────────────────────────────────────────────────
+// ── Native iOS + Web Permissions ─────────────────────────────────────────────
 
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
+  // 1. Try Native iOS LocalNotifications plugin first
   try {
-    return await webRequest();
+    if (Capacitor.isNativePlatform() && LocalNotifications && typeof LocalNotifications.requestPermissions === 'function') {
+      const res = await LocalNotifications.requestPermissions();
+      if (res.display === 'granted') return 'granted';
+      if (res.display === 'denied') return 'denied';
+    }
   } catch (e) {
-    console.warn('[notificationService] requestPermission failed', e);
-    return 'unknown';
+    console.warn('[notificationService] Native permission request error', e);
   }
+
+  // 2. Fallback to Web Notification API
+  if (typeof window !== 'undefined' && 'Notification' in window) {
+    if (Notification.permission === 'granted') return 'granted';
+    try {
+      const result = await Notification.requestPermission();
+      return result as NotificationPermission;
+    } catch {
+      return 'unknown';
+    }
+  }
+
+  return 'unknown';
 }
 
 export async function getNotificationPermission(): Promise<NotificationPermission> {
   try {
-    if (typeof window === 'undefined' || !('Notification' in window)) return 'unknown';
+    if (Capacitor.isNativePlatform() && LocalNotifications && typeof LocalNotifications.checkPermissions === 'function') {
+      const res = await LocalNotifications.checkPermissions();
+      if (res.display === 'granted') return 'granted';
+      if (res.display === 'denied') return 'denied';
+    }
+  } catch {}
+
+  if (typeof window !== 'undefined' && 'Notification' in window) {
     return Notification.permission as NotificationPermission;
-  } catch (e) {
-    console.warn('[notificationService] getPermission failed', e);
-    return 'unknown';
   }
+  return 'unknown';
 }
 
+// ── Schedule Notification (Native iOS UNUserNotificationCenter + Web) ─────────
+
 export async function scheduleNotification(n: AppNotification): Promise<void> {
+  const notifId = n.id ?? nextId();
+
+  // 1. Native iOS Notification (outside the app / lock screen)
   try {
-    webSchedule(n);
+    if (Capacitor.isNativePlatform() && LocalNotifications && typeof LocalNotifications.schedule === 'function') {
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: notifId,
+            title: n.title,
+            body: n.body,
+            schedule: n.scheduledAt ? { at: n.scheduledAt } : { at: new Date(Date.now() + 200) },
+            sound: 'default',
+            smallIcon: 'ic_stat_icon_config_sample',
+            extra: n.data,
+          },
+        ],
+      });
+      return;
+    }
   } catch (e) {
-    console.warn('[notificationService] schedule failed', e);
+    console.warn('[notificationService] Native LocalNotifications.schedule error', e);
+  }
+
+  // 2. Web Notification Fallback
+  if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+    const fire = () => {
+      try {
+        new Notification(n.title, {
+          body: n.body,
+          icon: n.icon ?? '/logo.png',
+          data: n.data,
+          tag: String(notifId),
+        });
+      } catch (err) {
+        console.warn('[notificationService] Web Notification error', err);
+      }
+    };
+
+    if (n.scheduledAt) {
+      const delay = n.scheduledAt.getTime() - Date.now();
+      if (delay > 0) setTimeout(fire, delay);
+      else fire();
+    } else {
+      fire();
+    }
   }
 }
 
 /**
  * Fires a high-priority Medication Reminder alert:
- * 1. Synthesizes iOS Bell Chime Sound
- * 2. Vibrates device (Haptic Feedback)
- * 3. Shows System Push/Web Notification
+ * 1. Native iOS System Notification (Lock Screen / Notification Center outside app)
+ * 2. Synthesizes iOS Bell Chime Sound
+ * 3. Vibrates device (Haptic Feedback)
  * 4. Dispatches in-app native iOS Glassmorphic Banner
  */
-export function triggerMedicationAlert(params: {
+export async function triggerMedicationAlert(params: {
   id?: string;
   medName: string;
   dosage: string;
   time?: string;
-}): void {
+}): Promise<void> {
   const { id = String(Date.now()), medName, dosage, time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) } = params;
 
   const title = 'نۆژدارێ زیرەک';
@@ -194,8 +221,8 @@ export function triggerMedicationAlert(params: {
   // 2. Vibrate
   triggerNotificationHaptic();
 
-  // 3. Web Notification (if permission granted)
-  scheduleNotification({
+  // 3. Native iOS System Notification (Lock Screen / outside app)
+  await scheduleNotification({
     id: nextId(),
     title,
     body,
