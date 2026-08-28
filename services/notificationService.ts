@@ -1,9 +1,9 @@
 /**
  * notificationService.ts
- * Unified notification layer for Dr. Smart.
- * Uses Web Notifications API with full iOS WKWebView support.
+ * Unified notification & reminder layer for Dr. Smart (نۆژدارێ زیرەک).
+ * Handles Web Notifications, synthesized iOS Chime Audio, Haptics,
+ * and In-App native iOS Dynamic Notification Banners.
  */
-import { Capacitor } from '@capacitor/core';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,18 +16,100 @@ export interface AppNotification {
   data?: Record<string, unknown>;
 }
 
+export interface MedicationAlertEventDetail {
+  id: string;
+  title: string;
+  body: string;
+  medName: string;
+  dosage: string;
+  time: string;
+  icon?: string;
+}
+
 export type NotificationPermission = 'granted' | 'denied' | 'prompt' | 'unknown';
 
 let _notifId = 1000;
 const nextId = () => ++_notifId;
 
-// ── Web Notifications ────────────────────────────────────────────────────────
+// ── Synthesized iOS Bell / Chime Sound (Web Audio API) ───────────────────────
+
+let _audioCtx: AudioContext | null = null;
+
+function getAudioContext(): AudioContext | null {
+  if (typeof window === 'undefined') return null;
+  if (!_audioCtx) {
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (AudioCtx) {
+      _audioCtx = new AudioCtx();
+    }
+  }
+  if (_audioCtx && _audioCtx.state === 'suspended') {
+    _audioCtx.resume().catch(() => {});
+  }
+  return _audioCtx;
+}
+
+/**
+ * Plays a clean, crisp Apple iOS-style harmonic bell notification chime.
+ */
+export function playNotificationChime(): void {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+
+    // Harmonic bell frequencies (G5 -> C6 -> E6 chime chord)
+    const tones = [
+      { freq: 783.99, start: 0, dur: 0.45, gain: 0.35 },    // G5
+      { freq: 1046.50, start: 0.08, dur: 0.55, gain: 0.45 }, // C6
+      { freq: 1318.51, start: 0.16, dur: 0.75, gain: 0.4 },  // E6
+    ];
+
+    tones.forEach(({ freq, start, dur, gain }) => {
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + start);
+
+      gainNode.gain.setValueAtTime(0, now + start);
+      gainNode.gain.linearRampToValueAtTime(gain, now + start + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + start + dur);
+
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      osc.start(now + start);
+      osc.stop(now + start + dur);
+    });
+  } catch (e) {
+    console.warn('[notificationService] Failed to play chime audio', e);
+  }
+}
+
+/**
+ * Triggers native haptic vibration.
+ */
+export function triggerNotificationHaptic(): void {
+  try {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate([120, 80, 120]);
+    }
+  } catch {}
+}
+
+// ── Web / System Notifications ───────────────────────────────────────────────
 
 async function webRequest(): Promise<NotificationPermission> {
   if (typeof window === 'undefined' || !('Notification' in window)) return 'unknown';
   if (Notification.permission === 'granted') return 'granted';
-  const result = await Notification.requestPermission();
-  return result as NotificationPermission;
+  try {
+    const result = await Notification.requestPermission();
+    return result as NotificationPermission;
+  } catch {
+    return 'unknown';
+  }
 }
 
 function webSchedule(n: AppNotification): void {
@@ -35,12 +117,19 @@ function webSchedule(n: AppNotification): void {
   if (Notification.permission !== 'granted') return;
 
   const fire = () => {
-    new Notification(n.title, {
-      body: n.body,
-      icon: n.icon ?? '/favicon.ico',
-      data: n.data,
-      tag: String(n.id ?? nextId()),
-    });
+    try {
+      new Notification(n.title, {
+        body: n.body,
+        icon: n.icon ?? '/logo.png',
+        badge: '/logo.png',
+        data: n.data,
+        tag: String(n.id ?? nextId()),
+      });
+      playNotificationChime();
+      triggerNotificationHaptic();
+    } catch (e) {
+      console.warn('[notificationService] Notification trigger error', e);
+    }
   };
 
   if (n.scheduledAt) {
@@ -81,8 +170,54 @@ export async function scheduleNotification(n: AppNotification): Promise<void> {
   }
 }
 
-export async function cancelNotification(id: number): Promise<void> {
-  // Web notifications do not require manual cancellation
+/**
+ * Fires a high-priority Medication Reminder alert:
+ * 1. Synthesizes iOS Bell Chime Sound
+ * 2. Vibrates device (Haptic Feedback)
+ * 3. Shows System Push/Web Notification
+ * 4. Dispatches in-app native iOS Glassmorphic Banner
+ */
+export function triggerMedicationAlert(params: {
+  id?: string;
+  medName: string;
+  dosage: string;
+  time?: string;
+}): void {
+  const { id = String(Date.now()), medName, dosage, time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) } = params;
+
+  const title = 'نۆژدارێ زیرەک';
+  const body = `نوکە دەمێ وەرگرتنا حەبکا تە یا (${medName} - ${dosage}) یە`;
+
+  // 1. Play sound
+  playNotificationChime();
+
+  // 2. Vibrate
+  triggerNotificationHaptic();
+
+  // 3. Web Notification (if permission granted)
+  scheduleNotification({
+    id: nextId(),
+    title,
+    body,
+    icon: '/logo.png',
+    data: { type: 'medication_reminder', medName, dosage, time },
+  });
+
+  // 4. In-App iOS Banner Event
+  if (typeof window !== 'undefined') {
+    const event = new CustomEvent<MedicationAlertEventDetail>('dr-smart:medication-alert', {
+      detail: {
+        id,
+        title,
+        body,
+        medName,
+        dosage,
+        time,
+        icon: '/logo.png',
+      },
+    });
+    window.dispatchEvent(event);
+  }
 }
 
 // ── Pre-built notifications ──────────────────────────────────────────────────
@@ -106,15 +241,5 @@ export async function notifyAnalysisReady(queryName: string): Promise<void> {
     title: 'شیکاری تەواو بوو',
     body: `راپۆرتا "${queryName}" ئامادەیە`,
     data: { type: 'analysis_done', query: queryName },
-  });
-}
-
-export async function scheduleHealthReminder(at: Date): Promise<void> {
-  await scheduleNotification({
-    id: 2010,
-    title: 'یادکرنا تەندروستیێ',
-    body: 'دەما پشکنینا تەندروستی و دەرمانێن تە هاتیە.',
-    scheduledAt: at,
-    data: { type: 'health_reminder' },
   });
 }

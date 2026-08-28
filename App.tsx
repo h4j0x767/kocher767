@@ -16,6 +16,7 @@ import MedicationTrackerPanel from './components/MedicationTrackerPanel';
 import SkinVisionModal from './components/SkinVisionModal';
 import AuthScreen from './components/AuthScreen';
 import IOSNotificationToast, { ToastMessage } from './components/IOSNotificationToast';
+import { IOSNotificationBanner } from './components/IOSNotificationBanner';
 import { analyzeMedicalQuery } from './services/geminiService';
 import { getCurrentUser, signOut, UserProfile } from './services/authService';
 import { MedicalData, AppState, HistoryItem } from './types';
@@ -707,6 +708,13 @@ function App() {
         darkMode={darkMode}
         showToast={showToast}
         onAddMedicationFromOintment={handleAddMedicationFromOintment}
+      />
+
+      {/* ── NATIVE IOS MEDICATION NOTIFICATION BANNER ── */}
+      <IOSNotificationBanner
+        onOpenMedication={() => {
+          setActiveTab('meds');
+        }}
       />
     </div>
   );

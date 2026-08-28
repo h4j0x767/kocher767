@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Pill, Plus, Check, Clock, Calendar, AlertCircle, 
-  Trash2, Bell, BellOff, ArrowRight, ShieldCheck, RefreshCw,
+  Trash2, Bell, BellOff, BellRing, ArrowRight, ShieldCheck, RefreshCw,
   Flame, ChevronLeft, ChevronRight, CheckCircle2, Circle,
   FlaskConical, Syringe, Droplets, Wind, Sun, Sunrise, Sunset, Moon,
   Utensils, FileText, X, Camera, Image as ImageIcon, Search, Eye, Loader2,
@@ -9,6 +9,13 @@ import {
 } from 'lucide-react';
 import { analyzeMedicalQuery, identifyMedicationFromImage } from '../services/geminiService';
 import { MedicalData } from '../types';
+import {
+  triggerMedicationAlert,
+  playNotificationChime,
+  triggerNotificationHaptic,
+  requestNotificationPermission,
+  getNotificationPermission
+} from '../services/notificationService';
 
 export interface MedicationItem {
   id: string;
@@ -327,6 +334,52 @@ export const MedicationTrackerPanel: React.FC<MedicationTrackerPanelProps> = ({
   const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(() => {
     return localStorage.getItem('med_notifications_enabled') !== 'false';
   });
+
+  // ── Real-time Active Medication Dose Alarm Scheduler ──
+  useEffect(() => {
+    if (!notificationsEnabled) return;
+    requestNotificationPermission().catch(() => {});
+
+    const notifiedDosesKey = `dr_badini_notified_${new Date().toISOString().slice(0, 10)}`;
+    const checkDoses = () => {
+      const now = new Date();
+      const currentHHMM = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      const todayDateStr = now.toISOString().slice(0, 10);
+
+      let notifiedMap: Record<string, boolean> = {};
+      try {
+        const savedNotified = localStorage.getItem(notifiedDosesKey);
+        if (savedNotified) notifiedMap = JSON.parse(savedNotified);
+      } catch {}
+
+      meds.forEach((m) => {
+        if (!m.active) return;
+        m.times.forEach((doseTime) => {
+          if (doseTime === currentHHMM) {
+            const doseId = `${m.id}_${todayDateStr}_${doseTime}`;
+            const isTaken = m.takenHistory[`${todayDateStr}_${doseTime}`];
+
+            if (!notifiedMap[doseId] && !isTaken) {
+              notifiedMap[doseId] = true;
+              localStorage.setItem(notifiedDosesKey, JSON.stringify(notifiedMap));
+
+              triggerMedicationAlert({
+                id: doseId,
+                medName: m.name,
+                dosage: m.dosage,
+                time: doseTime,
+              });
+            }
+          }
+        });
+      });
+    };
+
+    const interval = setInterval(checkDoses, 15000);
+    checkDoses();
+    return () => clearInterval(interval);
+  }, [meds, notificationsEnabled]);
+
 
   // Open Medical Analysis bottom sheet with instant caching and local fallback
   const handleOpenMedAnalysis = async (med: MedicationItem) => {
@@ -798,42 +851,72 @@ export const MedicationTrackerPanel: React.FC<MedicationTrackerPanelProps> = ({
           </div>
         </div>
 
-        {/* ── 2. NOTIFICATIONS ALERT BANNER ── */}
+        {/* ── 2. NOTIFICATIONS ALERT BANNER & TEST BUTTON ── */}
         <div
-          className="rounded-2xl p-3.5 border flex items-center justify-between gap-3 text-xs"
-          style={{ background: 'var(--bg2)', borderColor: 'var(--border)' }}
+          className="rounded-[1.4rem] p-4 border shadow-sm space-y-3 transition-all"
+          style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
         >
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-sm">
-              <Bell size={16} />
-            </div>
-            <div>
-              <div className="font-black" style={{ color: 'var(--text)' }}>ئاگاداریا دەمژمێرێ (Alarm)</div>
-              <div className="text-[11px] font-semibold" style={{ color: 'var(--text3)' }}>
-                ناردنا نۆتیفیکەیشنان دەمێ خوارنا دەرمانی دەستپێدکەت
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center text-sm shrink-0">
+                <Bell size={18} className={notificationsEnabled ? 'animate-bounce' : ''} />
+              </div>
+              <div className="text-right">
+                <div className="font-extrabold text-sm" style={{ color: 'var(--text)' }}>
+                  زەنگا ئۆتۆماتیکی یا دەرمانان
+                </div>
+                <div className="text-[11px] font-semibold" style={{ color: 'var(--text3)' }}>
+                  {notificationsEnabled ? 'ئاگاداری یا چالاکە ل دەمژمێرێن دیارکری' : 'ئاگاداری یا راوەستیایە'}
+                </div>
               </div>
             </div>
-          </div>
-          <button
-            onClick={() => {
-              triggerHaptic('light');
-              const next = !notificationsEnabled;
-              setNotificationsEnabled(next);
-              localStorage.setItem('med_notifications_enabled', String(next));
-              if (showToast) {
-                showToast('ئاگاداری', next ? 'ئاگاداری هاتنە چالاککرن' : 'ئاگاداری هاتنە ڕاوەستاندن', 'info');
-              }
-            }}
-            className="w-12 h-6 rounded-full transition-colors relative cursor-pointer flex-shrink-0"
-            style={{ background: notificationsEnabled ? 'var(--accent)' : 'var(--border2)' }}
-          >
-            <div
-              className="w-5 h-5 rounded-full bg-white shadow-md absolute top-0.5 transition-transform"
-              style={{
-                right: notificationsEnabled ? '2px' : 'calc(100% - 22px)',
+
+            <button
+              onClick={() => {
+                triggerHaptic('light');
+                const next = !notificationsEnabled;
+                setNotificationsEnabled(next);
+                localStorage.setItem('med_notifications_enabled', String(next));
+                if (showToast) {
+                  showToast('ئاگاداری', next ? 'ئاگاداری هاتنە چالاککرن ✓' : 'ئاگاداری هاتنە ڕاوەستاندن', 'info');
+                }
               }}
-            />
-          </button>
+              className="w-12 h-6 rounded-full transition-colors relative cursor-pointer flex-shrink-0"
+              style={{ background: notificationsEnabled ? '#10b981' : 'var(--border2)' }}
+            >
+              <div
+                className="w-5 h-5 rounded-full bg-white shadow-md absolute top-0.5 transition-transform"
+                style={{
+                  right: notificationsEnabled ? '2px' : 'calc(100% - 22px)',
+                }}
+              />
+            </button>
+          </div>
+
+          {/* Test Notification Trigger Button */}
+          <div className="pt-2 border-t flex items-center justify-between gap-2" style={{ borderColor: 'var(--border)' }}>
+            <span className="text-[11px] font-semibold" style={{ color: 'var(--text3)' }}>
+              تاقیکرنا شێوازێ زەنگێ و نۆتیفیکەیشنا ئایفۆنێ:
+            </span>
+            <button
+              onClick={() => {
+                triggerHaptic('medium');
+                const sampleMed = meds.find(m => m.active) || meds[0];
+                triggerMedicationAlert({
+                  medName: sampleMed ? sampleMed.name : 'Panadol Extra',
+                  dosage: sampleMed ? sampleMed.dosage : '٥٠٠ ملغ (١ حەبک)',
+                });
+                if (showToast) {
+                  showToast('تاقیکرنا زەنگێ', 'نۆتیفیکەیشنا زەنگا دەرمانی هاتە لێدان 🔔', 'success');
+                }
+              }}
+              className="px-3.5 py-1.5 rounded-xl font-black text-xs shadow-sm flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+              style={{ background: 'var(--accent)', color: 'var(--accent-t, #ffffff)' }}
+            >
+              <BellRing size={13} />
+              <span>تاقیکرنا زەنگێ 🔔</span>
+            </button>
+          </div>
         </div>
 
         {/* ── 3. TIME SLOT FILTER CHIPS (Vector Icons) ── */}
