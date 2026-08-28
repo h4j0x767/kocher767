@@ -36,7 +36,7 @@ jobs:
         run: |
           npx cap add ios || true
           cat << 'EOF' > ios/App/Podfile
-          platform :ios, '16.0'
+          platform :ios, '15.0'
           use_frameworks!
 
           def capacitor_pods
@@ -52,12 +52,18 @@ jobs:
           post_install do |installer|
             installer.pods_project.targets.each do |target|
               target.build_configurations.each do |config|
-                config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+                config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+                config.build_settings['EXPANDED_CODE_SIGN_IDENTITY'] = ""
+                config.build_settings['CODE_SIGNING_REQUIRED'] = "NO"
+                config.build_settings['CODE_SIGNING_ALLOWED'] = "NO"
               end
             end
           end
           EOF
           npx cap copy ios
+          if [ -f "ios/App/App.xcodeproj/project.pbxproj" ]; then
+            sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' ios/App/App.xcodeproj/project.pbxproj || true
+          fi
           cd ios/App && pod install --repo-update && cd ../..
 
       - name: Configure iOS Permissions
@@ -76,9 +82,11 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -archivePath ios/App/build/App.xcarchive \
+            IPHONEOS_DEPLOYMENT_TARGET=15.0 \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
             clean archive
 
       - name: Package IPA File
